@@ -19,7 +19,9 @@ jobs:
       # 3. Install dependencies
       - name: Install dependencies
         run: |
+          pip install --upgrade pip
           pip install -r requirements.txt
+          pip install dvc[gcs] requests pytest
 
       # 4. Authenticate with GCP for DVC
       - name: Authenticate with GCP
