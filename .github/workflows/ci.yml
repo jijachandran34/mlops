@@ -29,7 +29,7 @@ jobs:
           GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
         run: |
           echo "$GCP_SA_KEY" > gcp-key.json
-          export GOOGLE_APPLICATION_CREDENTIALS=$(pwd)/gcp-key.json
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$(pwd)/gcp-key.json" >> $GITHUB_ENV
           dvc remote modify gcsremote credentialpath $(pwd)/gcp-key.json
           dvc pull -v
 
@@ -38,9 +38,20 @@ jobs:
       #   run: dvc pull -v
 
       # 6. Download model from GCS (optional if you want separate download)
+      # - name: Download model from GCS
+      #   run: |
+      #     python -c "import os; from google.cloud import storage; client=storage.Client(); bucket=client.bucket('ml_ops_wk1_826'); blob=bucket.blob('my-models/iris-classifier-week-1/run-20251002-071009/model.joblib'); blob.download_to_filename('model.joblib')"
       - name: Download model from GCS
         run: |
-          python -c "import os; from google.cloud import storage; client=storage.Client(); bucket=client.bucket('ml_ops_wk1_826'); blob=bucket.blob('my-models/iris-classifier-week-1/run-20251002-071009/model.joblib'); blob.download_to_filename('model.joblib')"
+          python <<EOF
+          from google.cloud import storage      
+          client = storage.Client()
+          bucket = client.bucket('ml_ops_wk1_826')
+          blob = bucket.blob('my-models/iris-classifier-week-1/run-20251002-071009/model.joblib')
+          blob.download_to_filename('model.joblib')
+          print("Model downloaded successfully")
+          EOF
+  
 
       # 7. Run tests
       - name: Run pytest
