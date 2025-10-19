@@ -2,3 +2,4 @@
     remote = gcsremote
 ['remote "gcsremote"']
     url = gs://ml_ops_wk1_826
+    gdrive_use_service_account = true
