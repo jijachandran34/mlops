@@ -10,19 +10,41 @@ jobs:
   run-tests:
     runs-on: ubuntu-latest
     steps:
+      # 1. Checkout repo
       - uses: actions/checkout@v4
+      # 2. Set up Python
       - uses: actions/setup-python@v4
         with:
           python-version: "3.10"
-
+      # 3. Install dependencies
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
 
-      - name: Pull data from DVC
+      # 4. Authenticate with GCP for DVC
+      - name: Authenticate with GCP
+        env:
+          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
         run: |
-          pip install dvc[gcs]
-          dvc pull
+          echo "$GCP_SA_KEY" > gcp-key.json
+          export GOOGLE_APPLICATION_CREDENTIALS=$(pwd)/gcp-key.json
 
-      - name: Run tests
+      # 5. Pull data from DVC remote
+      - name: Pull DVC data
+        run: dvc pull -v
+
+      # 6. Download model from GCS (optional if you want separate download)
+      - name: Download model from GCS
+        run: |
+          python -c "
+              import os
+              from google.cloud import storage
+              client = storage.Client()
+              bucket = client.bucket('ml_ops_wk1_826')
+              blob = bucket.blob('my-models/iris-classifier-week-1/run-20251002-071009/model.joblib')
+              blob.download_to_filename('model.joblib')
+              "
+
+      # 7. Run tests
+      - name: Run pytest
         run: pytest -v
