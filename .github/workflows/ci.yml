@@ -40,14 +40,7 @@ jobs:
       # 6. Download model from GCS (optional if you want separate download)
       - name: Download model from GCS
         run: |
-          python -c "
-              import os
-              from google.cloud import storage
-              client = storage.Client()
-              bucket = client.bucket('ml_ops_wk1_826')
-              blob = bucket.blob('my-models/iris-classifier-week-1/run-20251002-071009/model.joblib')
-              blob.download_to_filename('model.joblib')
-              "
+          python -c "import os; from google.cloud import storage; client=storage.Client(); bucket=client.bucket('ml_ops_wk1_826'); blob=bucket.blob('my-models/iris-classifier-week-1/run-20251002-071009/model.joblib'); blob.download_to_filename('model.joblib')"
 
       # 7. Run tests
       - name: Run pytest
