@@ -30,10 +30,12 @@ jobs:
         run: |
           echo "$GCP_SA_KEY" > gcp-key.json
           export GOOGLE_APPLICATION_CREDENTIALS=$(pwd)/gcp-key.json
+          dvc remote modify gcsremote credentialpath $(pwd)/gcp-key.json
+          dvc pull -v
 
-      # 5. Pull data from DVC remote
-      - name: Pull DVC data
-        run: dvc pull -v
+      # # 5. Pull data from DVC remote
+      # - name: Pull DVC data
+      #   run: dvc pull -v
 
       # 6. Download model from GCS (optional if you want separate download)
       - name: Download model from GCS
