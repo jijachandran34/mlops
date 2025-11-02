@@ -1,0 +1,71 @@
+name: CD - Build and Deploy to GKE
+
+on:
+  push:
+    branches: [ main, gke-deploy-week6 ]
+  pull_request:
+    branches: [ main, gke-deploy-week6 ]
+
+env:
+  IMAGE_NAME: iris-api
+  REGION: ${{ secrets.GCP_REGION }}
+  PROJECT_ID: ${{ secrets.GCP_PROJECT_ID }}
+  GAR_REPO: ${{ secrets.GAR_REPO }}
+  CLUSTER: ${{ secrets.GKE_CLUSTER }}
+  ZONE: ${{ secrets.GKE_ZONE }}
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Authenticate to GCP
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_CREDENTIALS }}
+
+      - name: Set up gcloud CLI
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.PROJECT_ID }}
+
+      - name: Configure Docker for Artifact Registry
+        run: |
+          gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev
+
+      - name: Build and Push Docker Image
+        run: |
+          IMAGE_URI="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.GAR_REPO }}/${{ env.IMAGE_NAME }}:latest"
+          echo "Building image: $IMAGE_URI"
+          docker build -t $IMAGE_URI .
+          docker push $IMAGE_URI
+          echo "IMAGE_URI=$IMAGE_URI" >> $GITHUB_ENV
+
+      - name: Get GKE credentials
+        uses: google-github-actions/get-gke-credentials@v2
+        with:
+          cluster_name: ${{ env.CLUSTER }}
+          location: ${{ env.ZONE }}
+
+      - name: Create/Update ConfigMap for MLflow URI
+        run: |
+          kubectl create configmap iris-config \
+            --from-literal=mlflow_uri=${{ secrets.MLFLOW_TRACKING_URI }} \
+            --dry-run=client -o yaml | kubectl apply -f -
+
+      - name: Deploy to GKE
+        run: |
+          # Replace placeholders dynamically
+          sed -e "s|\${PROJECT_ID}|${{ env.PROJECT_ID }}|g" \
+              -e "s|\${GAR_REPO}|${{ env.GAR_REPO }}|g" \
+              k8s-deployment.yaml > k8s-deploy-final.yaml
+
+          kubectl apply -f k8s-deploy-final.yaml
+          kubectl rollout status deployment/iris-api
+
+      - name: Verify Service
+        run: |
+          kubectl get svc iris-api-service
