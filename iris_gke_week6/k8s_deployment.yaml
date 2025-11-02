@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: iris-api
+  labels:
+    app: iris-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: iris-api
+  template:
+    metadata:
+      labels:
+        app: iris-api
+    spec:
+      containers:
+      - name: iris-api
+        image: asia-south1-docker.pkg.dev/<PROJECT_ID>/<REPO_NAME>/iris-api:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: MLFLOW_TRACKING_URI
+          valueFrom:
+            configMapKeyRef:
+              name: iris-config
+              key: mlflow_uri
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: iris-api-service
+spec:
+  type: LoadBalancer
+  selector:
+    app: iris-api
+  ports:
+  - port: 80
+    targetPort: 8080
