@@ -1,0 +1,60 @@
+name: CI pipeline
+
+on:
+  push:
+    branches: [ "main", "dev" ]
+  pull_request:
+    branches: [ "main", "dev" ]
+
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+    steps:
+      # 1. Checkout repo
+      - uses: actions/checkout@v4
+      # 2. Set up Python
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.10"
+      # 3. Install dependencies
+      - name: Install dependencies
+        run: |
+          pip install --upgrade pip
+          pip install -r requirements.txt
+          pip install dvc[gcs] requests pytest
+
+      # 4. Authenticate with GCP for DVC
+      - name: Authenticate with GCP
+        env:
+          GCP_SA_KEY: ${{ secrets.GCP_SA_KEY }}
+        run: |
+          echo "$GCP_SA_KEY" > gcp-key.json
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$(pwd)/gcp-key.json" >> $GITHUB_ENV
+          dvc remote modify gcsremote credentialpath $(pwd)/gcp-key.json
+          dvc pull -v
+
+      # # 5. Pull data from DVC remote
+      # - name: Pull DVC data
+      #   run: dvc pull -v
+
+      # 6. Download model from GCS (optional if you want separate download)
+      # - name: Download model from GCS
+      #   run: |
+      #     python -c "import os; from google.cloud import storage; client=storage.Client(); bucket=client.bucket('ml_ops_wk1_826'); blob=bucket.blob('my-models/iris-classifier-week-1/run-20251002-071009/model.joblib'); blob.download_to_filename('model.joblib')"
+      - name: Download model from GCS
+        run: |
+          python <<EOF
+          from google.cloud import storage      
+          client = storage.Client()
+          bucket = client.bucket('ml_ops_wk1_826')
+          blob = bucket.blob('my-models/iris-classifier-week-1/run-20251002-071009/model.joblib')
+          blob.download_to_filename('model.joblib')
+          print("Model downloaded successfully")
+          EOF
+  
+
+      # 7. Run tests
+      - name: Run pytest
+        env:
+          PYTHONPATH: ${{ github.workspace }}
+        run: pytest -v
