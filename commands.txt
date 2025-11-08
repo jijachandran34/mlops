@@ -1,0 +1,65 @@
+
+# Initialize a new git repo for your Iris pipeline
+git init
+git clone https://github.com/jijachandran34/mlops.git
+git branch -M main
+git branch --show-current
+cd irispipeline
+
+# Setup Python environment
+python3 -m venv .irisenv
+source .irisenv/bin/activate
+
+# Install requirements and DVC
+pip install pandas scikit-learn #joblib google-cloud-storage
+pip install dvc[gcs]
+pip install dvc-gs
+
+pip install -r requirements.txt
+
+# Initialize DVC
+dvc init
+
+# Add your Google Cloud Storage bucket as remote
+dvc remote add -d gcsremote gs://ml_ops_wk1_826
+
+
+#get the file iris.csv from GCS
+gcloud auth application-default login
+
+# Download iris.csv from your GCS bucket to the local folder
+gsutil cp gs://ml_ops_wk1_826/raw/iris.csv iris.csv
+
+
+
+# Verify the file was downloaded successfully
+ls
+
+
+
+dvc add iris.csv
+git add iris.csv.dvc .gitignore
+git commit -m "Add base iris dataset"
+git config --global user.name "jijachandran34"
+dvc push
+
+python change_Data.py
+
+dvc add iris.csv
+git add iris.csv.dvc
+git commit -m "adding modified iris.csv dataset"
+git push
+
+#View your commit history
+git log --oneline
+
+To go back to the first version:
+git checkout c779c79b834da1cbbd7a06eb995836ac10efc9f0
+dvc checkout
+
+To return to the latest version:
+git checkout main
+dvc checkout
+
+
+
