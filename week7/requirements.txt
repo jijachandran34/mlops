@@ -1,8 +1,0 @@
-fastapi
-uvicorn[standard]
-scikit-learn
-joblib
-pandas
-scikit-learn
-joblib
-google-cloud-storage
