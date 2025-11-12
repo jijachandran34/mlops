@@ -38,7 +38,7 @@ jobs:
 
       - name: Build and Push Docker Image
         run: |
-          IMAGE_URI="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.GAR_REPO }}/${{ env.IMAGE_NAME }}:latest"
+          IMAGE_URI="${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.GAR_REPO }}/${{ env.IMAGE_NAME }}:latest1"
           echo "Building image: $IMAGE_URI"
           docker build -t $IMAGE_URI .
           docker push $IMAGE_URI
@@ -47,8 +47,9 @@ jobs:
       - name: Get GKE credentials
         uses: google-github-actions/get-gke-credentials@v2
         with:
-          cluster_name: ${{ env.CLUSTER }}
-          location: ${{ env.ZONE }}
+          cluster_name: ${{ secrets.GKE_CLUSTER }}
+          location: ${{ secrets.GKE_ZONE }}
+          project_id: ${{ secrets.GCP_PROJECT_ID }}
 
       - name: Create/Update ConfigMap for MLflow URI
         run: |
@@ -61,11 +62,13 @@ jobs:
           # Replace placeholders dynamically
           sed -e "s|\${PROJECT_ID}|${{ env.PROJECT_ID }}|g" \
               -e "s|\${GAR_REPO}|${{ env.GAR_REPO }}|g" \
-              k8s-deployment.yaml > k8s-deploy-final.yaml
+              -e "s|\${REGION}|${{ env.REGION }}|g" \
+              k8s_deployment.yaml > k8s-deploy-final.yaml
 
           kubectl apply -f k8s-deploy-final.yaml
           kubectl rollout status deployment/iris-api
 
-      - name: Verify Service
+      - name: Verify Deployed Service
         run: |
-          kubectl get svc iris-api-service
+          echo "Current deployed services:"
+          kubectl get svc iris-api-service -o wide

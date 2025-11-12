@@ -5,7 +5,7 @@ metadata:
   labels:
     app: iris-api
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: iris-api
@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: iris-api
-        image: asia-south1-docker.pkg.dev/<PROJECT_ID>/<REPO_NAME>/iris-api:latest
+        image: us-central1-docker.pkg.dev/civic-origin-473311-v9/iris-repo/iris-api:latest1
         ports:
         - containerPort: 8080
         env:

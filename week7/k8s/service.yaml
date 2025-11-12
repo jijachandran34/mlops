@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: iris-ml-svc
+spec:
+  type: LoadBalancer
+  selector:
+    app: iris-ml
+  ports:
+  - protocol: TCP
+    port: 80
+    targetPort: 8280
+

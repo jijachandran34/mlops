@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: iris-ml-deploy
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: iris-ml
+  template:
+    metadata:
+      labels:
+        app: iris-ml
+    spec:
+      containers:
+      - name: iris-ml
+        image: gcr.io/civic-origin-473311-v9/iris-ml:latest   # replace PROJECT_ID
+        ports:
+        - containerPort: 8280
+        readinessProbe:
+          httpGet:
+            path: /ready_check
+            port: 8280
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 2
+        livenessProbe:
+          httpGet:
+            path: /live_check
+            port: 8280
+          initialDelaySeconds: 15
+          periodSeconds: 20
+          timeoutSeconds: 2
+        resources:
+          requests:
+            cpu: "100m"
+            memory: "128Mi"
+          limits:
+            cpu: "500m"
+            memory: "512Mi"
