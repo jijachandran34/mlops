@@ -1,0 +1,67 @@
+stages:
+  fetch_data:
+    cmd: python3 scripts/fetch_data.py
+    deps:
+      - scripts/fetch_data.py
+    outs:
+      - data/iris_raw.csv
+
+  poison_5:
+    cmd: python3 scripts/poison_data.py --input data/iris_raw.csv --output data/iris_poison_5.csv --poison-level 5
+    deps:
+      - data/iris_raw.csv
+      - scripts/poison_data.py
+    outs:
+      - data/iris_poison_5.csv
+
+  poison_10:
+    cmd: python3 scripts/poison_data.py --input data/iris_raw.csv --output data/iris_poison_10.csv --poison-level 10
+    deps:
+      - data/iris_raw.csv
+      - scripts/poison_data.py
+    outs:
+      - data/iris_poison_10.csv
+
+  poison_50:
+    cmd: python3 scripts/poison_data.py --input data/iris_raw.csv --output data/iris_poison_50.csv --poison-level 50
+    deps:
+      - data/iris_raw.csv
+      - scripts/poison_data.py
+    outs:
+      - data/iris_poison_50.csv
+
+  train_clean:
+    cmd: python3 scripts/train.py --data data/iris_raw.csv --experiment iris_poisoning --poison-level 0
+    deps:
+      - data/iris_raw.csv
+      - scripts/train.py
+    metrics:
+      - reports/metrics_poison_0.json:
+          cache: false
+
+  train_poison_5:
+    cmd: python3 scripts/train.py --data data/iris_poison_5.csv --experiment iris_poisoning --poison-level 5
+    deps:
+      - data/iris_poison_5.csv
+      - scripts/train.py
+    metrics:
+      - reports/metrics_poison_5.json:
+          cache: false
+
+  train_poison_10:
+    cmd: python3 scripts/train.py --data data/iris_poison_10.csv --experiment iris_poisoning --poison-level 10
+    deps:
+      - data/iris_poison_10.csv
+      - scripts/train.py
+    metrics:
+      - reports/metrics_poison_10.json:
+          cache: false
+
+  train_poison_50:
+    cmd: python3 scripts/train.py --data data/iris_poison_50.csv --experiment iris_poisoning --poison-level 50
+    deps:
+      - data/iris_poison_50.csv
+      - scripts/train.py
+    metrics:
+      - reports/metrics_poison_50.json:
+          cache: false

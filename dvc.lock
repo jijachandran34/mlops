@@ -1,0 +1,133 @@
+schema: '2.0'
+stages:
+  fetch_data:
+    cmd: python3 scripts/fetch_data.py
+    deps:
+    - path: scripts/fetch_data.py
+      hash: md5
+      md5: b2620bb353c2bbeb82968caafcff6097
+      size: 1578
+    outs:
+    - path: data/iris_raw.csv
+      hash: md5
+      md5: 4954d4088152604322732f13c4e14691
+      size: 2606
+  poison_5:
+    cmd: python3 scripts/poison_data.py --input data/iris_raw.csv --output 
+      data/iris_poison_5.csv --poison-level 5
+    deps:
+    - path: data/iris_raw.csv
+      hash: md5
+      md5: 4954d4088152604322732f13c4e14691
+      size: 2606
+    - path: scripts/poison_data.py
+      hash: md5
+      md5: dade5683d983f001fbaf62333a0b7711
+      size: 2723
+    outs:
+    - path: data/iris_poison_5.csv
+      hash: md5
+      md5: 7ad83772e37e76ccae45ab29e6afdc32
+      size: 2890
+  poison_10:
+    cmd: python3 scripts/poison_data.py --input data/iris_raw.csv --output 
+      data/iris_poison_10.csv --poison-level 10
+    deps:
+    - path: data/iris_raw.csv
+      hash: md5
+      md5: 4954d4088152604322732f13c4e14691
+      size: 2606
+    - path: scripts/poison_data.py
+      hash: md5
+      md5: dade5683d983f001fbaf62333a0b7711
+      size: 2723
+    outs:
+    - path: data/iris_poison_10.csv
+      hash: md5
+      md5: fd7e6ee2a053b3e2033ded763ca79a16
+      size: 3179
+  poison_50:
+    cmd: python3 scripts/poison_data.py --input data/iris_raw.csv --output 
+      data/iris_poison_50.csv --poison-level 50
+    deps:
+    - path: data/iris_raw.csv
+      hash: md5
+      md5: 4954d4088152604322732f13c4e14691
+      size: 2606
+    - path: scripts/poison_data.py
+      hash: md5
+      md5: dade5683d983f001fbaf62333a0b7711
+      size: 2723
+    outs:
+    - path: data/iris_poison_50.csv
+      hash: md5
+      md5: 2f8cff8975ffa962d273293a3000bdc9
+      size: 5470
+  train_clean:
+    cmd: python3 scripts/train.py --data data/iris_raw.csv --experiment 
+      iris_poisoning --poison-level 0
+    deps:
+    - path: data/iris_raw.csv
+      hash: md5
+      md5: 4954d4088152604322732f13c4e14691
+      size: 2606
+    - path: scripts/train.py
+      hash: md5
+      md5: c39332c8122931ba530b66cc6e3f662b
+      size: 3789
+    outs:
+    - path: reports/metrics_poison_0.json
+      hash: md5
+      md5: 2f03a1df89d77057965f9b9443e8f792
+      size: 226
+  train_poison_5:
+    cmd: python3 scripts/train.py --data data/iris_poison_5.csv --experiment 
+      iris_poisoning --poison-level 5
+    deps:
+    - path: data/iris_poison_5.csv
+      hash: md5
+      md5: 7ad83772e37e76ccae45ab29e6afdc32
+      size: 2890
+    - path: scripts/train.py
+      hash: md5
+      md5: c39332c8122931ba530b66cc6e3f662b
+      size: 3789
+    outs:
+    - path: reports/metrics_poison_5.json
+      hash: md5
+      md5: 8141567e9903e735d73eee7888fe4fa9
+      size: 231
+  train_poison_10:
+    cmd: python3 scripts/train.py --data data/iris_poison_10.csv --experiment 
+      iris_poisoning --poison-level 10
+    deps:
+    - path: data/iris_poison_10.csv
+      hash: md5
+      md5: fd7e6ee2a053b3e2033ded763ca79a16
+      size: 3179
+    - path: scripts/train.py
+      hash: md5
+      md5: c39332c8122931ba530b66cc6e3f662b
+      size: 3789
+    outs:
+    - path: reports/metrics_poison_10.json
+      hash: md5
+      md5: a20bbab515167d84b0872b1a671790cc
+      size: 233
+  train_poison_50:
+    cmd: python3 scripts/train.py --data data/iris_poison_50.csv --experiment 
+      iris_poisoning --poison-level 50
+    deps:
+    - path: data/iris_poison_50.csv
+      hash: md5
+      md5: 2f8cff8975ffa962d273293a3000bdc9
+      size: 5470
+    - path: scripts/train.py
+      hash: md5
+      md5: c39332c8122931ba530b66cc6e3f662b
+      size: 3789
+    outs:
+    - path: reports/metrics_poison_50.json
+      hash: md5
+      md5: b8ee31cb308a3888b7c5783e7994a304
+      size: 233

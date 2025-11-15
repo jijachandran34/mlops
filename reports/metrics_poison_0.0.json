@@ -1,0 +1,9 @@
+{
+  "poison_level": 0.0,
+  "accuracy": 0.9047619047619048,
+  "f1_score": 0.8941798941798942,
+  "precision": 0.9238095238095237,
+  "recall": 0.9047619047619048,
+  "data_file": "data/iris_raw.csv",
+  "target_column": "species"
+}
