@@ -30,17 +30,6 @@ jobs:
       - name: Setup DVC
         uses: iterative/setup-dvc@v1
       
-      - name: Configure GCS credentials
-        run: |
-          echo "${{ secrets.GCP_SA_KEY }}" > gcs-key.json
-          export GOOGLE_APPLICATION_CREDENTIALS=gcs-key.json
-        if: secrets.GCP_SA_KEY != ''
-      
-      - name: Pull data from DVC
-        run: |
-          dvc pull || echo "DVC pull failed, will fetch data directly"
-        continue-on-error: true
-      
       - name: Fetch data
         run: |
           python3 scripts/fetch_data.py
@@ -67,7 +56,7 @@ jobs:
           echo "" >> report.md
           cat reports/report.md >> report.md
           
-          cml comment create report.md
+          cml comment create report.md || echo "CML comment failed, skipping"
         continue-on-error: true
       
       - name: Upload artifacts
