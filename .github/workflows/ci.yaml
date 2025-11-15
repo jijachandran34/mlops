@@ -32,9 +32,9 @@ jobs:
       
       - name: Configure GCS credentials
         run: |
-          echo "${{ secrets.GCS_SERVICE_ACCOUNT_KEY }}" > gcs-key.json
+          echo "${{ secrets.GCP_SA_KEY }}" > gcs-key.json
           export GOOGLE_APPLICATION_CREDENTIALS=gcs-key.json
-        if: secrets.GCS_SERVICE_ACCOUNT_KEY != ''
+        if: secrets.GCP_SA_KEY != ''
       
       - name: Pull data from DVC
         run: |
