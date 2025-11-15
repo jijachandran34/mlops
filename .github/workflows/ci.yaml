@@ -1,0 +1,83 @@
+name: IRIS MLOps CI Pipeline
+
+on:
+  push:
+    branches:
+      - week8
+  pull_request:
+    branches:
+      - week8
+
+jobs:
+  data-validation-and-training:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+        with:
+          fetch-depth: 0
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+      
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+      
+      - name: Setup DVC
+        uses: iterative/setup-dvc@v1
+      
+      - name: Configure GCS credentials
+        run: |
+          echo "${{ secrets.GCS_SERVICE_ACCOUNT_KEY }}" > gcs-key.json
+          export GOOGLE_APPLICATION_CREDENTIALS=gcs-key.json
+        if: secrets.GCS_SERVICE_ACCOUNT_KEY != ''
+      
+      - name: Pull data from DVC
+        run: |
+          dvc pull || echo "DVC pull failed, will fetch data directly"
+        continue-on-error: true
+      
+      - name: Fetch data
+        run: |
+          python3 scripts/fetch_data.py
+      
+      - name: Validate data
+        run: |
+          python3 scripts/validate_data.py data/iris_raw.csv
+      
+      - name: Run DVC pipeline
+        run: |
+          dvc repro
+      
+      - name: Generate report
+        run: |
+          python3 scripts/generate_report.py
+      
+      - name: Publish CML report
+        env:
+          REPO_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          pip install cml
+          
+          echo "## Pipeline Execution Report" > report.md
+          echo "" >> report.md
+          cat reports/report.md >> report.md
+          
+          cml comment create report.md
+        continue-on-error: true
+      
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: reports
+          path: reports/
+      
+      - name: Check validation status
+        run: |
+          if [ -f reports/validation_results.json ]; then
+            python3 -c "import json; result = json.load(open('reports/validation_results.json')); exit(0 if result['validation_passed'] else 1)"
+          fi
