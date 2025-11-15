@@ -5,6 +5,7 @@ import pandas as pd
 import sys
 import json
 import os
+import numpy as np
 
 def validate_data(file_path):
     """

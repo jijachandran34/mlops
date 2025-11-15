@@ -36,7 +36,7 @@ def train_model(data_file, experiment_name, poison_level=0):
     X = df.drop(target_col, axis=1)
     y = df[target_col]
     
-    # Convert string labels to numeric if needed
+    # Convert string labels to numeric
     from sklearn.preprocessing import LabelEncoder
     if y.dtype == 'object' or y.dtype.name == 'category':
         le = LabelEncoder()
